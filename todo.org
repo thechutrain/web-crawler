@@ -1,0 +1,6 @@
+0.0.1
+#+TITLE: Todos
+* TODO initialize project with todos && git
+* TODO make a simple server
+* TODO write to file contents from search
+* TODO make command line application
