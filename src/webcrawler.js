@@ -1,10 +1,14 @@
 const axios = require('axios');
 const cheerio = require('cheerio');
 
+const MAX_DEPTH = 0;
+const KEY_WORD = 'hamburger';
+let global_count = 0;
+
 // TODO - replace this with prompter
 // adds in the ability to get info from a specific url
 const args = process.argv.slice(2);
-const url = args[0] || 'https://en.wikipedia.org/wiki/Two%27s_complement';
+// const url = args[0] || 'https://en.wikipedia.org/wiki/Two%27s_complement';
 
 /** ----- searchWikiPages -------
  * given a topic name, makes a request to wikipedia, parses page
@@ -14,23 +18,26 @@ const url = args[0] || 'https://en.wikipedia.org/wiki/Two%27s_complement';
  * @return {Promise} jsonData of the webpage
  */
 //#region searchWikiPages
-function searchWikiPages(title = '') {
-	const encodedTitle = encodeURI(title.trim());
-	const url = `https://en.wikipedia.org/wiki/${encodedTitle}`;
 
-	console.log(`Making a request to ${url} ...`);
+const url_list = [
+	{
+		url: 'https://en.wikipedia.org/wiki/hotdog',
+		depth: 0,
+	},
+];
 
-	return new Promise((resolve, reject) => {
-		axios.get(url).then(
-			response => {
-				const dataJSON = parseWikiPage(response.data);
-				const dataStr = JSON.stringify(dataJSON);
-				resolve(dataJSON);
-			},
-			err => {
-				reject({ err_msg: `No page found on wikipedia for the url: ${url}` });
-			}
-		);
+function searchWikiPages(links = url_list) {
+	links.forEach(function(urlObj) {
+		if (urlObj.depth <= MAX_DEPTH) {
+			let axiosPromise = new Promise((resolve, reject) => {
+				axios.get(urlObj.url).then(response => {
+					let newDepth = urlObj.depth + 1;
+					const links = parseWikiPage(response.data, newDepth);
+					searchWikiPages(links);
+					console.log(global_count);
+				});
+			});
+		}
 	});
 }
 //#endregion
@@ -41,47 +48,33 @@ function searchWikiPages(title = '') {
  * @return {object} wikiContent
  */
 //#region parseWikiPage
-function parseWikiPage(htmlDOM) {
+function parseWikiPage(htmlDOM, depth) {
 	const $ = cheerio.load(htmlDOM);
 	const contentChildren = $('#mw-content-text .mw-parser-output').children();
-	const title = $('#firstHeading').text();
-	const timestamp = new Date().toISOString();
-	const details = [];
+	const links = [];
+	const wikiHostUrl = 'https://en.wikipedia.org/';
 
-	let keepCollecting = true;
-	let index = 0;
+	let linksFound = contentChildren.find('a').length;
+	console.log(`For depth of ${depth} found ${linksFound} link(s)`);
 
-	// Loop through each element inside the main content,
-	// collect the text content inside p, until you reach table of contents tag
-	while (keepCollecting && index < contentChildren.length) {
-		let ele = contentChildren.eq(index);
+	contentChildren.find('a').each((index, element) => {
+		let href = $(element).attr('href');
+		links.push({
+			url: `${wikiHostUrl}${href}`,
+			depth: depth,
+		});
+	});
 
-		if (ele.get(0).tagName == 'p') {
-			let detailStr = ele.text().trim();
-			if (detailStr !== '') {
-				detailStr = detailStr.replace(/\[[\d]+\]/gi, '');
-				details.push(detailStr);
-			}
-		} else if (ele.attr('id') === 'toc') {
-			keepCollecting = false;
-		}
-		index++;
-	}
+	let pageContent = $.text();
+	const regex = /frankfurter/gi;
+	let count = (pageContent.match(regex) || []).length;
+	global_count += count;
 
-	return { title, details, timestamp };
+	return links.splice(0, 10);
 }
 //#endregion
 
 // --------- TESTING ------------
 // tests that you can make a request to page & prints data
-const topic = args[0];
-searchWikiPages(topic)
-	.then(dataStr => {
-		console.log('---------');
-		console.log(dataStr);
-	})
-	.catch(err => {
-		if (err.err_msg) {
-			console.log(err.err_msg);
-		}
-	});
+// const url = args[0];
+searchWikiPages(url_list);
