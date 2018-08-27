@@ -1,8 +1,10 @@
 const axios = require('axios');
 const cheerio = require('cheerio');
 
-const MAX_DEPTH = 0;
-const KEY_WORD = 'hamburger';
+const DEBUGGING = true;
+
+const MAX_DEPTH = 0; // inclusive value
+const KEY_WORD = 'frankfurter';
 let global_count = 0;
 
 // TODO - replace this with prompter
@@ -37,7 +39,7 @@ function searchWikiPages(links = url_list) {
 					console.log(global_count);
 				});
 			});
-		}
+		} // closes if urlObj.depth
 	});
 }
 //#endregion
@@ -55,8 +57,11 @@ function parseWikiPage(htmlDOM, depth) {
 	const wikiHostUrl = 'https://en.wikipedia.org/';
 
 	let linksFound = contentChildren.find('a').length;
-	console.log(`For depth of ${depth} found ${linksFound} link(s)`);
+	if (DEBUGGING) {
+		console.log(`For depth of ${depth} found ${linksFound} link(s)`);
+	}
 
+	// Find all embedded links on current page
 	contentChildren.find('a').each((index, element) => {
 		let href = $(element).attr('href');
 		links.push({
@@ -65,12 +70,15 @@ function parseWikiPage(htmlDOM, depth) {
 		});
 	});
 
+	// Look for any occurances of our key word
 	let pageContent = $.text();
-	const regex = /frankfurter/gi;
+	// const regex = /`${KEY_WORD}`/gi;
+	// const regex = /frankfurter/gi;
+	const regex = new RegExp(KEY_WORD, 'gi');
 	let count = (pageContent.match(regex) || []).length;
 	global_count += count;
 
-	return links.splice(0, 10);
+	return DEBUGGING ? links.splice(0, 10) : links;
 }
 //#endregion
 

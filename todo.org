@@ -8,7 +8,7 @@
 #+TITLE: ideas with keyan
 * actually create a graph
 * search for the shortest path between two topics
-* add unit tests
+* add unit tests [JEST?]
 * pooling requests, set max number of requests (limiting concurrent requests with promise)
 * check to not revisit any url page more than once
 
