@@ -4,7 +4,7 @@
 	"description": "",
 	"main": "webcrawler.js",
 	"scripts": {
-		"test": "echo \"Error: no test specified\" && exit 1",
+		"test": "jest",
 		"start": "node src/webcrawler"
 	},
 	"keywords": [],
@@ -12,6 +12,7 @@
 	"license": "ISC",
 	"dependencies": {
 		"axios": "^0.18.0",
-		"cheerio": "^1.0.0-rc.2"
+		"cheerio": "^1.0.0-rc.2",
+		"jest": "^23.5.0"
 	}
 }
