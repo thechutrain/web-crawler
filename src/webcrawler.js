@@ -1,11 +1,11 @@
-const axios = require('axios');
+const requestPage = require('./utils').requestPage;
+const findPageLinks = require('./utils').findPageLinks;
+const searchPageForText = require('./utils').searchPageForText;
 
 const MAX_DEPTH = 0; // inclusive value
 
-// TODO - replace this with prompter
-// adds in the ability to get info from a specific url
+// TODO: replace this with prompter
 const args = process.argv.slice(2);
-// const url = args[0] || 'https://en.wikipedia.org/wiki/Two%27s_complement';
 
 /** ----- searchWikiPages -------
  * given a topic name, makes a request to wikipedia, parses page
@@ -23,19 +23,30 @@ const url_list = [
 	},
 ];
 
-function searchWikiPages(links = url_list) {
+let count = 0;
+function searchWikiPages(links = url_list, keyword) {
 	links.forEach(function(urlObj) {
 		if (urlObj.depth <= MAX_DEPTH) {
-			let axiosPromise = new Promise((resolve, reject) => {
-				axios.get(urlObj.url).then(response => {
-					let newDepth = urlObj.depth + 1;
-					const links = parseWikiPage(response.data, newDepth);
-					searchWikiPages(links);
-					console.log(global_count);
+			requestPage(urlObj.url).then(htmlStr => {
+				const newDepth = urlObj.depth + 1;
+
+				// find the links
+				const urlLinks = findPageLinks(htmlStr).map(url => {
+					// TODO: determine if its abs or rel url
+					return { url, depth: newDepth };
 				});
+
+				// find the occurances of some key word
+				count += searchPageForText(keyword);
+
+				searchWikiPages(urlLinks, keyword);
 			});
-		} // closes if urlObj.depth
+		} else {
+			console.log(count);
+		}
 	});
+
+	// Check if there are any pending promises
 }
 //#endregion
 

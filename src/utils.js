@@ -33,6 +33,8 @@ function findPageLinks(htmlStr) {
 
 	// Find all embedded links on current page
 	aTags.each((_, element) => {
+		// TODO: need to make a validator & check to see if the links are valid or not!
+		// must be abs paths, not img files, not hashes
 		let href = $(element).attr('href');
 		links.push(href);
 	});
