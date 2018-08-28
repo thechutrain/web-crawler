@@ -27,20 +27,24 @@ let count = 0;
 function searchWikiPages(links = url_list, keyword) {
 	links.forEach(function(urlObj) {
 		if (urlObj.depth <= MAX_DEPTH) {
-			requestPage(urlObj.url).then(htmlStr => {
-				const newDepth = urlObj.depth + 1;
+			requestPage(urlObj.url)
+				.then(htmlStr => {
+					const newDepth = urlObj.depth + 1;
 
-				// find the links
-				const urlLinks = findPageLinks(htmlStr).map(url => {
-					// TODO: determine if its abs or rel url
-					return { url, depth: newDepth };
+					// find the links
+					const urlLinks = findPageLinks(htmlStr).map(url => {
+						// TODO: determine if its abs or rel url
+						return { url, depth: newDepth };
+					});
+
+					// find the occurances of some key word
+					count += searchPageForText(htmlStr, keyword);
+
+					searchWikiPages(urlLinks, keyword);
+				})
+				.catch(e => {
+					console.log(`ERROR in requestPage: ${e}`);
 				});
-
-				// find the occurances of some key word
-				count += searchPageForText(keyword);
-
-				searchWikiPages(urlLinks, keyword);
-			});
 		} else {
 			console.log(count);
 		}
@@ -53,4 +57,4 @@ function searchWikiPages(links = url_list, keyword) {
 // --------- TESTING ------------
 // tests that you can make a request to page & prints data
 // const url = args[0];
-searchWikiPages(url_list);
+searchWikiPages(url_list, 'dog');
