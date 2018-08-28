@@ -1,6 +1,6 @@
 /*global describe it expect*/
 const requestPage = require('../utils').requestPage;
-const parsePage = require('../utils').parsePage;
+const findPageLinks = require('../utils').findPageLinks;
 const searchPageForText = require('../utils').searchPageForText;
 const validUrl = require('../utils').validUrl;
 // const checkAbsRelUrl = require('../utils').checkAbsRelUrl;
@@ -25,11 +25,11 @@ describe('UTILS: requestPage', () => {
 });
 //#endregion
 
-// Unit tests: parsePage()
+// Unit tests: findPageLinks()
 //#region
-describe('UTILS: parsePage() ', () => {
+describe('UTILS: findPageLinks() ', () => {
 	it('should be able to parse an empty page', () => {
-		expect(parsePage('')).toEqual([]);
+		expect(findPageLinks('')).toEqual([]);
 	});
 
 	it('should be able to return link names', () => {
@@ -39,10 +39,10 @@ describe('UTILS: parsePage() ', () => {
 									<a href='${link_1}'>link 1</a>
 									<a href='${link_2}'>link 2</a>
 								</body>`;
-		const links = parsePage(html);
+		const links = findPageLinks(html);
 		expect(links.length).toBe(2);
-		expect(links[0]).toEqual({ url: link_1 });
-		expect(links[1]).toEqual({ url: link_2 });
+		expect(links[0]).toEqual(link_1);
+		expect(links[1]).toEqual(link_2);
 	});
 });
 //#endregion

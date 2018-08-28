@@ -1,9 +1,8 @@
 const cheerio = require('cheerio');
 const axios = require('axios');
-const DEBUGGING = true;
+const LINK_LIMIT = 10;
 
-// TODO
-/**
+/** ======== requestPage() ========
  *
  * @param {string} url
  * @return {Promise}
@@ -21,26 +20,24 @@ function requestPage(url) {
 			});
 	});
 }
-/** ===== parseWikiPage() =====
+
+/** ===== findPageLinks() =====
  *
  * @param {string} htmlStr
- * @param {object} overload - depth, base url
  * @return {array} links
  */
-function parsePage(htmlStr) {
+function findPageLinks(htmlStr) {
 	const $ = cheerio.load(htmlStr);
 	const aTags = $('a');
 	const links = [];
 
 	// Find all embedded links on current page
-	aTags.each((index, element) => {
+	aTags.each((_, element) => {
 		let href = $(element).attr('href');
-		links.push({
-			url: `${href}`,
-		});
+		links.push(href);
 	});
 
-	return DEBUGGING ? links.splice(0, 10) : links;
+	return typeof LINK_LIMIT === 'number' ? links.splice(0, LINK_LIMIT) : links;
 }
 
 /**
@@ -62,7 +59,7 @@ function searchPageForText(htmlStr, key_word) {
  * @param {string} urlPath
  * @return {bln} - whether path is absolute or relative
  */
-function checkAbsRelUrl(urlPath) {}
+// function checkAbsRelUrl(urlPath) {}
 
 function validUrl(urlPath) {
 	const regexUrl = new RegExp(
@@ -75,8 +72,8 @@ function validUrl(urlPath) {
 
 module.exports = {
 	requestPage,
-	parsePage,
+	findPageLinks,
 	searchPageForText,
 	validUrl,
-	checkAbsRelUrl,
+	// checkAbsRelUrl,
 };
