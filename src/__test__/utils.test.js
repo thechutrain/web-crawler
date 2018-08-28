@@ -41,8 +41,8 @@ describe('UTILS: parsePage() ', () => {
 								</body>`;
 		const links = parsePage(html);
 		expect(links.length).toBe(2);
-		expect(links[0]).toEqual({ url: link_1, depth: 0 });
-		expect(links[1]).toEqual({ url: link_2, depth: 0 });
+		expect(links[0]).toEqual({ url: link_1 });
+		expect(links[1]).toEqual({ url: link_2 });
 	});
 });
 //#endregion
