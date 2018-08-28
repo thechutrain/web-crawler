@@ -27,3 +27,7 @@
 *** Build out the prompter so it validates input --> NPM
 ** Web crawler, CLI --> for selecting parts of the text that you want (semi-automated)?
  
+2.0.0
+#+TITLE: TODOS
+* TODO turn webcrawler into a self contained obj
+** TODO manage pool of connetions
