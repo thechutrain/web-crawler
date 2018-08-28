@@ -1,8 +1,26 @@
 const cheerio = require('cheerio');
+const axios = require('axios');
 const DEBUGGING = true;
-const KEY_WORD = 'frankfurter';
-let global_count = 0;
 
+// TODO
+/**
+ *
+ * @param {string} url
+ * @return {Promise}
+ */
+function requestPage(url) {
+	return new Promise((resolve, reject) => {
+		axios
+			.get(url)
+			.then(res => {
+				const htmlStr = res.data;
+				resolve(htmlStr);
+			})
+			.catch(e => {
+				reject(e);
+			});
+	});
+}
 /** ===== parseWikiPage() =====
  *
  * @param {string} htmlDOM
@@ -50,7 +68,26 @@ function searchPageForText(htmlStr, key_word) {
 	return (pageContent.match(regex) || []).length;
 }
 
+/**
+ *
+ * @param {string} urlPath
+ * @return {bln} - whether path is absolute or relative
+ */
+function checkAbsRelUrl(urlPath) {}
+
+function validUrl(urlPath) {
+	const regexUrl = new RegExp(
+		'((http|ftp|https)://)?[w-]+(.[w-]+)+([w.,@?^=%&amp;:/~+#-]*[w@?^=%&amp;/~+#-])?',
+		'gi'
+	);
+
+	return regexUrl.test(urlPath);
+}
+
 module.exports = {
+	requestPage,
 	parsePage,
 	searchPageForText,
+	validUrl,
+	checkAbsRelUrl,
 };

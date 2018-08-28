@@ -4,7 +4,7 @@
 	"description": "",
 	"main": "webcrawler.js",
 	"scripts": {
-		"test": "jest",
+		"test": "jest --config='jest.config.js'",
 		"start": "node src/webcrawler"
 	},
 	"keywords": [],

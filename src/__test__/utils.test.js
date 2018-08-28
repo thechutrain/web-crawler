@@ -1,7 +1,32 @@
 /*global describe it expect*/
+const requestPage = require('../utils').requestPage;
 const parsePage = require('../utils').parsePage;
 const searchPageForText = require('../utils').searchPageForText;
+const validUrl = require('../utils').validUrl;
+// const checkAbsRelUrl = require('../utils').checkAbsRelUrl;
 
+// Unit : requestPage()
+//#region
+describe('UTILS: requestPage', () => {
+	it('should be able to find a keyword in an html page, case insensitive', () => {
+		const url = 'https://en.wikipedia.org/wiki/Two%27s_complement';
+		return requestPage(url).then(html => {
+			expect(typeof html).toBe('string');
+		});
+	});
+
+	it('should not find any keywords that are attributes, class names, ids', () => {
+		const html = `<body>
+										<h1 id="cat">My favorite animal:</h1>
+										<p class="cat">No feline animal here</p>
+									</body>`;
+		expect(searchPageForText(html, 'cat')).toBe(0);
+	});
+});
+//#endregion
+
+// Unit tests: parsePage()
+//#region
 describe('UTILS: parsePage() ', () => {
 	it('should be able to parse an empty page', () => {
 		expect(parsePage('')).toEqual([]);
@@ -20,7 +45,10 @@ describe('UTILS: parsePage() ', () => {
 		expect(links[1]).toEqual({ url: link_2, depth: 0 });
 	});
 });
+//#endregion
 
+// Unit tests: searchPageForText()
+//#region
 describe('UTILS: searchPageForText', () => {
 	it('should be able to find a keyword in an html page, case insensitive', () => {
 		const html = `<body>
@@ -37,3 +65,32 @@ describe('UTILS: searchPageForText', () => {
 		expect(searchPageForText(html, 'cat')).toBe(0);
 	});
 });
+//#endregion
+
+// Unit tests: validUrl()
+//#region validUrl()
+describe('UTILS: validUrl()', () => {
+	it('should validate proper urls', () => {
+		expect(validUrl('https://www.google.com')).toBe(true);
+		expect(validUrl('https://www.wikipedia.com/wiki')).toBe(true);
+	});
+	it('should not validate NON-valid urls', () => {
+		expect(validUrl('google.com')).toBe(false);
+		expect(validUrl('https://google.com')).toBe(false);
+	});
+});
+//#endregion
+
+// Unit tests: validUrl()
+//#region validUrl()
+describe('UTILS: validUrl()', () => {
+	it('should validate proper urls', () => {
+		expect(validUrl('https://www.google.com')).toBe(true);
+		expect(validUrl('https://www.wikipedia.com/wiki')).toBe(true);
+	});
+	it('should not validate NON-valid urls', () => {
+		expect(validUrl('google.com')).toBe(false);
+		expect(validUrl('https://google.com')).toBe(false);
+	});
+});
+//#endregion
