@@ -1,87 +1,136 @@
-const axios = require('axios');
-const cheerio = require('cheerio');
+'use strict';
+const requestPage = require('./utils').requestPage;
+const findPageLinks = require('./utils').findPageLinks;
+const searchPageForText = require('./utils').searchPageForText;
 
-// TODO - replace this with prompter
-// adds in the ability to get info from a specific url
+const MAX_DEPTH = 0; // inclusive value
+
+// TODO: replace this with prompter
 const args = process.argv.slice(2);
-const url = args[0] || 'https://en.wikipedia.org/wiki/Two%27s_complement';
 
-/** ----- searchWikiPages -------
- * given a topic name, makes a request to wikipedia, parses page
- * and returns a json object with the most important text
- *
- * @param {string} title
- * @return {Promise} jsonData of the webpage
- */
-//#region searchWikiPages
-function searchWikiPages(title = '') {
-	const encodedTitle = encodeURI(title.trim());
-	const url = `https://en.wikipedia.org/wiki/${encodedTitle}`;
-
-	console.log(`Making a request to ${url} ...`);
-
-	return new Promise((resolve, reject) => {
-		axios.get(url).then(
-			response => {
-				const dataJSON = parseWikiPage(response.data);
-				const dataStr = JSON.stringify(dataJSON);
-				resolve(dataJSON);
-			},
-			err => {
-				reject({ err_msg: `No page found on wikipedia for the url: ${url}` });
-			}
-		);
-	});
+function WebCrawler(options = {}) {
+	this.START_URL = options.startUrl || 'https://en.wikipedia.org/wiki/hotdog';
+	this.KEYWORD = options.keyword || 'frankfurter';
+	this.MAX_DEPTH = options.depth || 1;
+	this.MAX_REQ = options.MAX_REQ || 3;
+	this.pendingRequest = Array(this.MAX_REQ).fill(null);
+	this.queuedRequest = [];
+	this.visitedUrls = new Map();
+	this.total_count = 0;
+	this.num_request = 0; // debugging
+	this.init();
 }
-//#endregion
+
+WebCrawler.prototype.init = function initWebCrawler() {
+	const url_list = [
+		{
+			url: this.START_URL,
+			depth: 0,
+		},
+	];
+
+	this.crawlPages(url_list);
+};
+
+WebCrawler.prototype.onEnd = function onEnd() {
+	console.log('----------- finished --------');
+	console.log(`Made a total of ${this.num_request} request(s)`);
+	console.log(this.visitedUrls);
+};
+
+WebCrawler.prototype.crawlPages = function crawlPages(urlLinks = []) {
+	urlLinks.forEach(
+		function(urlObj) {
+			// Validate depth-level
+			if (urlObj.depth > this.MAX_DEPTH) return;
+
+			// Validate unique url only
+			if (this.visitedUrls.has(urlObj.url)) return;
+
+			// Check if room on our pending request array to make request
+			let requestIndex = null;
+			let canMakeRequest = this.pendingRequest.some((e, i) => {
+				if (e === null) {
+					requestIndex = i;
+					return true;
+				}
+			});
+
+			if (canMakeRequest && requestIndex !== null) {
+				this.pendingRequest[requestIndex] = this._makePageRequest(
+					urlObj,
+					requestIndex
+				);
+				this.num_request++;
+				this.visitedUrls.set(urlObj.url, null);
+			} else {
+				this.queuedRequest.push(urlObj);
+			}
+		}.bind(this)
+	);
+};
+
+WebCrawler.prototype._makePageRequest = function _makePageRequest(
+	urlObj,
+	reqIndx
+) {
+	return requestPage(urlObj.url)
+		.then(
+			function successRequestHandler(htmlStr) {
+				this.pendingRequest[reqIndx] = null;
+
+				// Check for the next request on the queue
+				if (this.queuedRequest.length) {
+					let nextUrl = this.queuedRequest.shift();
+					this.pendingRequest[reqIndx] = this._makePageRequest(
+						nextUrl,
+						reqIndx
+					);
+				}
+
+				// Look for the keyword occurances
+				const keyWordCount = searchPageForText(htmlStr, this.KEYWORD);
+				this.visitedUrls.set(urlObj.url, keyWordCount);
+				this.total_count += keyWordCount;
+
+				// Find next set of external page links
+				const newDepth = urlObj.depth + 1;
+				const nextSetLinks = findPageLinks(htmlStr).map(url => ({
+					url,
+					depth: newDepth,
+				}));
+
+				this.crawlPages(nextSetLinks);
+
+				// Check if webcrawler is finished
+				this._isDone();
+			}.bind(this)
+		)
+		.catch(e => {
+			console.log(`ERROR in requestPage promise: ${e}`);
+			this.pendingRequest[reqIndx] = null;
+			// Check for the next request on the queue
+			if (this.queuedRequest.length) {
+				let nextUrl = this.queuedRequest.shift();
+				this.pendingRequest[reqIndx] = this._makePageRequest(nextUrl, reqIndx);
+			}
+
+			// Check if webcrawler is finished
+			this._isDone();
+		});
+};
 
 /**
- *
- * @param {string} htmlDOM
- * @return {object} wikiContent
+ * @return {bln} whether or not webcrawler is done or not
  */
-//#region parseWikiPage
-function parseWikiPage(htmlDOM) {
-	const $ = cheerio.load(htmlDOM);
-	const contentChildren = $('#mw-content-text .mw-parser-output').children();
-	const title = $('#firstHeading').text();
-	const timestamp = new Date().toISOString();
-	const details = [];
-
-	let keepCollecting = true;
-	let index = 0;
-
-	// Loop through each element inside the main content,
-	// collect the text content inside p, until you reach table of contents tag
-	while (keepCollecting && index < contentChildren.length) {
-		let ele = contentChildren.eq(index);
-
-		if (ele.get(0).tagName == 'p') {
-			let detailStr = ele.text().trim();
-			if (detailStr !== '') {
-				detailStr = detailStr.replace(/\[[\d]+\]/gi, '');
-				details.push(detailStr);
-			}
-		} else if (ele.attr('id') === 'toc') {
-			keepCollecting = false;
-		}
-		index++;
+WebCrawler.prototype._isDone = function _isDone() {
+	const waitReqEmpty = this.queuedRequest.length === 0;
+	const pendReqEmpty = this.pendingRequest.every(r => r === null);
+	if (waitReqEmpty && pendReqEmpty) {
+		this.onEnd();
+		// return true;
 	}
+};
 
-	return { title, details, timestamp };
-}
-//#endregion
-
-// --------- TESTING ------------
-// tests that you can make a request to page & prints data
-const topic = args[0];
-searchWikiPages(topic)
-	.then(dataStr => {
-		console.log('---------');
-		console.log(dataStr);
-	})
-	.catch(err => {
-		if (err.err_msg) {
-			console.log(err.err_msg);
-		}
-	});
+// TESTING
+new WebCrawler();

@@ -5,19 +5,33 @@
 * PROGRESS write to file contents from search
 * TODO make command line application
 
+#+TITLE: ideas with keyan
+* actually create a graph
+* search for the shortest path between two topics
+* add unit tests [JEST?]
+* pooling requests, set max number of requests (limiting concurrent requests with promise)
+* check to not revisit any url page more than once
 
 #+TITLE: IDEAS
 * command-line program
-* search for previous topics & stored pages
-* save wiki topics as md files
-* add ability to add additional notes when you save?
-* add ". . ." feedback when making a request to a page etc.
-* actually use the wikipedia API?
+# * search for previous topics & stored pages
+# * save wiki topics as md files
+# * add ability to add additional notes when you save?
+# * add ". . ." feedback when making a request to a page etc.
+# * actually use the wikipedia API?
 ** instead of using cheerio library, make an html text parser?
-* get topic "tags" by parsing through relate links
+# * get topic "tags" by parsing through relate links
 * format each paragraph tag as an element in array --> bullet points
 ** DONE remove [#] source attributes from the paragraph tag [1]
 * get the link and print that out in the md file as well
 *** Build out the prompter so it validates input --> NPM
 ** Web crawler, CLI --> for selecting parts of the text that you want (semi-automated)?
  
+2.0.0
+#+TITLE: TODOS
+* DONE validate the urls
+* DONE turn webcrawler into a self contained obj
+** DONE manage pool of connetions
+
+#+TITLE: IDEAS for Version 2.0.0
+* build out a visual tool, concentric semi-circles to see the relationship?
