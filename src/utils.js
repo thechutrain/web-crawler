@@ -1,6 +1,6 @@
 const cheerio = require('cheerio');
 const axios = require('axios');
-const LINK_LIMIT = 10;
+const LINK_LIMIT = 4;
 
 /** ======== requestPage() ========
  *

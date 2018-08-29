@@ -33,7 +33,9 @@ WebCrawler.prototype.init = function initWebCrawler() {
 };
 
 WebCrawler.prototype.onEnd = function onEnd() {
-	console.log('finished!');
+	console.log('----------- finished --------');
+	console.log(`Made a total of ${this.num_request} request(s)`);
+	console.log(this.visitedUrls);
 };
 
 WebCrawler.prototype.crawlPages = function crawlPages(urlLinks = []) {
@@ -55,49 +57,10 @@ WebCrawler.prototype.crawlPages = function crawlPages(urlLinks = []) {
 			});
 
 			if (canMakeRequest && requestIndex !== null) {
-				//#region newRequest Promise
-				let newRequest = requestPage(urlObj.url)
-					.then(
-						function successRequestHandler(htmlStr) {
-							this.pendingRequest[requestIndex] = null;
-
-							// TODO: check if any queuedRequest on page --> pass it
-							// checkQueue(requestIndex)
-
-							// Look for the keyword occurances
-							const keyWordCount = searchPageForText(htmlStr, this.KEYWORD);
-							this.visitedUrls.set(urlObj.url, keyWordCount);
-							this.total_count += keyWordCount;
-
-							// Find next set of external page links
-							const newDepth = urlObj.depth + 1;
-							const nextSetLinks = findPageLinks(htmlStr).map(url => ({
-								url,
-								depth: newDepth,
-							}));
-
-							// Debugging
-							// console.log(nextSetLinks);
-							// console.log(this.pendingRequest);
-
-							this.crawlPages(nextSetLinks);
-
-							// Check if webcrawler is finished
-							const queuedRequestEmpty = this.queuedRequest.length === 0;
-							const pendingRequestEmpty = this.pendingRequest.every(
-								r => r === null
-							);
-							if (queuedRequestEmpty && pendingRequestEmpty) {
-								this.onEnd();
-							}
-						}.bind(this)
-					)
-					.catch(e => {
-						console.log(`ERROR in requesPage promise: ${e}`);
-					});
-				//#endregion newRequest Promise
-
-				this.pendingRequest[requestIndex] = newRequest;
+				this.pendingRequest[requestIndex] = this._makePageRequest(
+					urlObj,
+					requestIndex
+				);
 				this.num_request++;
 				this.visitedUrls.set(urlObj.url, null);
 			} else {
@@ -107,6 +70,57 @@ WebCrawler.prototype.crawlPages = function crawlPages(urlLinks = []) {
 	);
 
 	// Outside the forEach loop
+};
+
+WebCrawler.prototype._makePageRequest = function _makePageRequest(
+	urlObj,
+	reqIndx
+) {
+	return requestPage(urlObj.url)
+		.then(
+			function successRequestHandler(htmlStr) {
+				this.pendingRequest[reqIndx] = null;
+
+				// Check for the next request on the queue
+				if (this.queuedRequest.length) {
+					let nextUrl = this.queuedRequest.shift();
+					this.pendingRequest[reqIndx] = this._makePageRequest(
+						nextUrl,
+						reqIndx
+					);
+				}
+
+				// Look for the keyword occurances
+				const keyWordCount = searchPageForText(htmlStr, this.KEYWORD);
+				this.visitedUrls.set(urlObj.url, keyWordCount);
+				this.total_count += keyWordCount;
+
+				// Find next set of external page links
+				const newDepth = urlObj.depth + 1;
+				const nextSetLinks = findPageLinks(htmlStr).map(url => ({
+					url,
+					depth: newDepth,
+				}));
+
+				this.crawlPages(nextSetLinks);
+
+				// Check if webcrawler is finished
+				const queuedRequestEmpty = this.queuedRequest.length === 0;
+				const pendingRequestEmpty = this.pendingRequest.every(r => r === null);
+				if (queuedRequestEmpty && pendingRequestEmpty) {
+					this.onEnd();
+				}
+			}.bind(this)
+		)
+		.catch(e => {
+			console.log(`ERROR in requestPage promise: ${e}`);
+			this.pendingRequest[reqIndx] = null;
+			// Check for the next request on the queue
+			if (this.queuedRequest.length) {
+				let nextUrl = this.queuedRequest.shift();
+				this.pendingRequest[reqIndx] = this._makePageRequest(nextUrl, reqIndx);
+			}
+		});
 };
 
 // TESTING
