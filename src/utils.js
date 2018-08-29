@@ -36,7 +36,7 @@ function findPageLinks(htmlStr) {
 		// TODO: need to make a validator & check to see if the links are valid or not!
 		// must be abs paths, not img files, not hashes
 		let href = $(element).attr('href');
-		if (validUrl(href)) {
+		if (href && validUrl(href)) {
 			links.push(href);
 		}
 	});
@@ -65,7 +65,7 @@ function searchPageForText(htmlStr, key_word) {
  */
 // function checkAbsRelUrl(urlPath) {}
 
-function validUrl(urlPath) {
+function validUrl(urlPath = '') {
 	// NOTE: valid urls must either begin with http(s) or www.
 	const regexUrl = new RegExp('^((https|http)|([w]{3}.))', 'gi');
 
