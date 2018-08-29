@@ -73,24 +73,12 @@ describe('UTILS: validUrl()', () => {
 	it('should validate proper urls', () => {
 		expect(validUrl('https://www.google.com')).toBe(true);
 		expect(validUrl('https://www.wikipedia.com/wiki')).toBe(true);
+		expect(validUrl('https://google.com')).toBe(true);
 	});
 	it('should not validate NON-valid urls', () => {
+		expect(validUrl('#main')).toBe(false);
+		expect(validUrl('#cite_note-zwilling-4')).toBe(false);
 		expect(validUrl('google.com')).toBe(false);
-		expect(validUrl('https://google.com')).toBe(false);
-	});
-});
-//#endregion
-
-// Unit tests: validUrl()
-//#region validUrl()
-describe('UTILS: validUrl()', () => {
-	it('should validate proper urls', () => {
-		expect(validUrl('https://www.google.com')).toBe(true);
-		expect(validUrl('https://www.wikipedia.com/wiki')).toBe(true);
-	});
-	it('should not validate NON-valid urls', () => {
-		expect(validUrl('google.com')).toBe(false);
-		expect(validUrl('https://google.com')).toBe(false);
 	});
 });
 //#endregion
