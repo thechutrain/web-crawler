@@ -14,13 +14,13 @@
 
 #+TITLE: IDEAS
 * command-line program
-* search for previous topics & stored pages
-* save wiki topics as md files
-* add ability to add additional notes when you save?
-* add ". . ." feedback when making a request to a page etc.
-* actually use the wikipedia API?
+# * search for previous topics & stored pages
+# * save wiki topics as md files
+# * add ability to add additional notes when you save?
+# * add ". . ." feedback when making a request to a page etc.
+# * actually use the wikipedia API?
 ** instead of using cheerio library, make an html text parser?
-* get topic "tags" by parsing through relate links
+# * get topic "tags" by parsing through relate links
 * format each paragraph tag as an element in array --> bullet points
 ** DONE remove [#] source attributes from the paragraph tag [1]
 * get the link and print that out in the md file as well
@@ -32,3 +32,6 @@
 * DONE validate the urls
 * DONE turn webcrawler into a self contained obj
 ** DONE manage pool of connetions
+
+#+TITLE: IDEAS for Version 2.0.0
+* build out a visual tool, concentric semi-circles to see the relationship?

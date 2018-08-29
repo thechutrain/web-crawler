@@ -68,8 +68,6 @@ WebCrawler.prototype.crawlPages = function crawlPages(urlLinks = []) {
 			}
 		}.bind(this)
 	);
-
-	// Outside the forEach loop
 };
 
 WebCrawler.prototype._makePageRequest = function _makePageRequest(
@@ -105,11 +103,7 @@ WebCrawler.prototype._makePageRequest = function _makePageRequest(
 				this.crawlPages(nextSetLinks);
 
 				// Check if webcrawler is finished
-				const queuedRequestEmpty = this.queuedRequest.length === 0;
-				const pendingRequestEmpty = this.pendingRequest.every(r => r === null);
-				if (queuedRequestEmpty && pendingRequestEmpty) {
-					this.onEnd();
-				}
+				this._isDone();
 			}.bind(this)
 		)
 		.catch(e => {
@@ -120,7 +114,22 @@ WebCrawler.prototype._makePageRequest = function _makePageRequest(
 				let nextUrl = this.queuedRequest.shift();
 				this.pendingRequest[reqIndx] = this._makePageRequest(nextUrl, reqIndx);
 			}
+
+			// Check if webcrawler is finished
+			this._isDone();
 		});
+};
+
+/**
+ * @return {bln} whether or not webcrawler is done or not
+ */
+WebCrawler.prototype._isDone = function _isDone() {
+	const waitReqEmpty = this.queuedRequest.length === 0;
+	const pendReqEmpty = this.pendingRequest.every(r => r === null);
+	if (waitReqEmpty && pendReqEmpty) {
+		this.onEnd();
+		// return true;
+	}
 };
 
 // TESTING

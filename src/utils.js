@@ -1,3 +1,4 @@
+'use strict';
 const cheerio = require('cheerio');
 const axios = require('axios');
 const LINK_LIMIT = 4;
@@ -33,8 +34,6 @@ function findPageLinks(htmlStr) {
 
 	// Find all embedded links on current page
 	aTags.each((_, element) => {
-		// TODO: need to make a validator & check to see if the links are valid or not!
-		// must be abs paths, not img files, not hashes
 		let href = $(element).attr('href');
 		if (href && validUrl(href)) {
 			links.push(href);
@@ -56,14 +55,6 @@ function searchPageForText(htmlStr, key_word) {
 
 	return (pageContent.match(regex) || []).length;
 }
-
-// TODO: make a function that determines if url is absolute or relative path
-/**
- *
- * @param {string} urlPath
- * @return {bln} - whether path is absolute or relative
- */
-// function checkAbsRelUrl(urlPath) {}
 
 function validUrl(urlPath = '') {
 	// NOTE: valid urls must either begin with http(s) or www.
