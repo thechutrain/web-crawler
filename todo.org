@@ -29,5 +29,6 @@
  
 2.0.0
 #+TITLE: TODOS
-* TODO turn webcrawler into a self contained obj
-** TODO manage pool of connetions
+* DONE validate the urls
+* PROGRESS turn webcrawler into a self contained obj
+** PROGRESS manage pool of connetions
