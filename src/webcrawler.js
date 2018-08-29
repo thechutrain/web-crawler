@@ -47,11 +47,6 @@ WebCrawler.prototype.crawlPages = function crawlPages(url_links = []) {
 				});
 
 				if (canMakeRequest && requestIndex !== null) {
-					//debugging:
-					console.log('--------- Request --------');
-					console.log(this.num_request);
-					console.log(this.pendingRequest);
-
 					let newRequest = requestPage(urlObj.url)
 						.then(
 							function(htmlStr) {
