@@ -13,31 +13,57 @@ function WebCrawler(options = {}) {
 	this.KEYWORD = options.keyword || 'frankfurter';
 	this.MAX_DEPTH = options.depth || 1;
 	this.MAX_REQ = options.MAX_REQ || 3;
+
+	// Request-related data structures
 	this.pendingRequest = Array(this.MAX_REQ).fill(null);
 	this.queuedRequest = [];
+
 	this.visitedUrls = new Map();
 	this.total_count = 0;
 	this.num_request = 0; // debugging
+
+	// this.example = [
+	// 	{
+	// 		url: this.START_URL,
+	// 		depth: 0,
+	// 		refPage: null, // original page that linked to this url
+	// 		arrUrls: [],
+	// 	},
+	// ];
+	// Begin the program
 	this.init();
 }
 
+// ========= life cycle methods ===========
+// init, onEnd, onError
+//#region lifecycle methods
 WebCrawler.prototype.init = function initWebCrawler() {
 	const url_list = [
 		{
 			url: this.START_URL,
 			depth: 0,
+			refPage: null, // original page that linked to this url
+			arrUrls: [],
 		},
 	];
 
 	this.crawlPages(url_list);
+	// this.crawlPages(this.example);
 };
 
 WebCrawler.prototype.onEnd = function onEnd() {
 	console.log('----------- finished --------');
 	console.log(`Made a total of ${this.num_request} request(s)`);
 	console.log(this.visitedUrls);
+	console.log(this.example);
 };
 
+//TODO: make an on error for promise catch block!
+WebCrawler.prototype.onError = function onError() {};
+//#endregion lifecycle methods
+
+// =========== Primary functions ==========
+//#region
 WebCrawler.prototype.crawlPages = function crawlPages(urlLinks = []) {
 	urlLinks.forEach(
 		function(urlObj) {
@@ -95,10 +121,14 @@ WebCrawler.prototype._makePageRequest = function _makePageRequest(
 
 				// Find next set of external page links
 				const newDepth = urlObj.depth + 1;
-				const nextSetLinks = findPageLinks(htmlStr).map(url => ({
-					url,
-					depth: newDepth,
-				}));
+				//TODO: instead of getting every url, maybe get urls that don't match current hostname?
+				const nextSetLinks = (urlObj.arrUrls = findPageLinks(htmlStr).map(
+					url => ({
+						url,
+						depth: newDepth,
+						refPage: urlObj.url,
+					})
+				));
 
 				this.crawlPages(nextSetLinks);
 
@@ -124,13 +154,13 @@ WebCrawler.prototype._makePageRequest = function _makePageRequest(
  * @return {bln} whether or not webcrawler is done or not
  */
 WebCrawler.prototype._isDone = function _isDone() {
-	const waitReqEmpty = this.queuedRequest.length === 0;
+	const queuedReqEmpty = this.queuedRequest.length === 0;
 	const pendReqEmpty = this.pendingRequest.every(r => r === null);
-	if (waitReqEmpty && pendReqEmpty) {
+	if (queuedReqEmpty && pendReqEmpty) {
 		this.onEnd();
-		// return true;
 	}
 };
+//#endregion
 
 // TESTING
 new WebCrawler();
