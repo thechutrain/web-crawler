@@ -9,7 +9,7 @@ const searchPageForText = require('./utils').searchPageForText;
 function WebCrawler(options = {}) {
 	this.START_URL = options.startUrl || 'https://en.wikipedia.org/wiki/hotdog';
 	this.KEYWORD = options.keyword || 'frankfurter';
-	this.MAX_DEPTH = options.depth || 1;
+	this.MAX_DEPTH = options.depth || 2;
 	this.MAX_REQ = options.MAX_REQ || 3;
 
 	// Request-related data structures
@@ -177,7 +177,7 @@ WebCrawler.prototype.printResults = function printResults(
 				'|' + Array.apply(null, Array((urlObj.depth + 2) * 2)).join(' ');
 
 			// ex. |- Result (1/1) @depth=0
-			const depthHeader = prefixDash + ` DEPTH of ${urlObj.depth}:`;
+			const depthHeader = prefixDash + `| DEPTH of ${urlObj.depth}:`;
 			const pageHeader =
 				prefixSpacer +
 				'|' +
