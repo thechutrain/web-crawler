@@ -1,0 +1,6 @@
+#+TITLE: TODOS
+* DONE update the visitedURL map, so it holds obj that checks 
+* PROGRESS pretty print things so they appear as a tree? CLOCK: [2018-9-19 Wed 9:59]
+* TODO make an actual readme file
+* TODO create filter on the urls that we request?
+* TODO Make a full integration test, host local server with multiple web pages?
