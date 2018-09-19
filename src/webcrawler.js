@@ -203,12 +203,6 @@ WebCrawler.prototype.printResults = function printResults(
 ) {
 	urlList.forEach(
 		function(urlObj, index, arr) {
-			// let depth = urlObj.depth;
-			const prefixDash =
-				'|' + Array.apply(null, Array((urlObj.depth + 1) * 2)).join('-');
-			const prefixSpacer =
-				'|' + Array.apply(null, Array((urlObj.depth + 2) * 2)).join(' ');
-
 			// const depthHeaderText = prefixDash + ` DEPTH of ${urlObj.depth}`;
 			// const webHeadText = prefixSpacer + `| * @url ${urlObj.url}`;
 			// const resultsFound =
@@ -223,6 +217,11 @@ WebCrawler.prototype.printResults = function printResults(
 			// 	` * Result ${index + 1} of ${arr.length}, found keyword x${
 			// 		urlObj.keyWordCount
 			// 	} times`;
+
+			const prefixDash =
+				'|' + Array.apply(null, Array((urlObj.depth + 1) * 2)).join('-');
+			const prefixSpacer =
+				'|' + Array.apply(null, Array((urlObj.depth + 2) * 2)).join(' ');
 
 			// ex. |- Result (1/1) @depth=0
 			const depthHeader = prefixDash + ` DEPTH of ${urlObj.depth}:`;
@@ -241,8 +240,27 @@ WebCrawler.prototype.printResults = function printResults(
 			// ex. | * @url: https://en.wikipedia.org/wiki/hotdog
 			const urlText = prefixSpacer + '|' + ` * @url: ${urlObj.url}`;
 
-			const printStr = [depthHeader, pageHeader, countText, urlText].join('\n');
+			// const strSumArr = [];
+			// strSumArr.concat([depthHeader, pageHeader, countText, urlText]);
+
+			// TODO: determine if there are any links found
+			const redirectLinkText =
+				prefixSpacer +
+				'|' +
+				` * redirect links found: ${urlObj.arrUrls.length}`;
+
+			const printStr = [
+				depthHeader,
+				pageHeader,
+				countText,
+				urlText,
+				redirectLinkText,
+			].join('\n');
 			console.log(printStr);
+
+			if (urlObj.arrUrls.length > 1) {
+				this.printResults(urlObj.arrUrls);
+			}
 
 			// console.log(depthHeaderText + '\n' + webHeadText + '\n' + resultsFound);
 		}.bind(this)
