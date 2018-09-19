@@ -3,10 +3,8 @@ const requestPage = require('./utils').requestPage;
 const findPageLinks = require('./utils').findPageLinks;
 const searchPageForText = require('./utils').searchPageForText;
 
-const MAX_DEPTH = 0; // inclusive value
-
 // TODO: replace this with prompter
-const args = process.argv.slice(2);
+// const args = process.argv.slice(2);
 
 function WebCrawler(options = {}) {
 	this.START_URL = options.startUrl || 'https://en.wikipedia.org/wiki/hotdog';
@@ -32,8 +30,8 @@ function WebCrawler(options = {}) {
 			keyWordCount: 2,
 		},
 	];
-	// this.crawlPages(this.inputUrlList);
-	this.onEnd();
+	this.crawlPages(this.inputUrlList);
+	// this.onEnd();
 }
 
 // ========= life cycle methods ===========
@@ -54,42 +52,12 @@ function WebCrawler(options = {}) {
 // };
 
 WebCrawler.prototype.onEnd = function onEnd() {
-	console.log('----------- finished --------');
+	console.log('============= Quick Summary =============');
 	console.log(`Made a total of ${this.num_request} request(s)`);
+	console.log(`Found the keyword: x${this.total_count} time(s) \n`);
 
+	console.log('=========== Full Tree Results ===========');
 	this.printResults();
-
-	// Make a printing thing here
-	// let depth = this.inputUrlList[0].depth;
-	// let depth = 1;
-	// let count = 1;
-	// let total = 3;
-	// const prefixSpacer = '|' + Array.apply(null, Array(depth * 2 + 1)).join('-');
-	// const levelText =
-	// 	prefixSpacer +
-	// 	`- Level ${depth}: \n|-- (${count} / ${total})) : www.wiki.com`;
-	// // console.log(levelText);
-
-	// // console.log(this.visitedUrls);
-	// function printUrl(urlList) {
-	// 	let self = this;
-	// 	urlList.forEach(
-	// 		function(urlObj, index, arr) {
-	// 			// let depth = urlObj.depth;
-	// 			const prefixSpacer =
-	// 				'|' + Array.apply(null, Array((urlObj.depth + 1) * 2)).join('-');
-
-	// 			const webHeadText =
-	// 				prefixSpacer + ` (${index + 1}/${arr.length}): ${urlObj.url}`;
-	// 			const resultsFound =
-	// 				prefixSpacer + ` L--> found keyword: ${this.KEYWORD} `;
-
-	// 			console.log(webHeadText);
-	// 		}.bind(this)
-	// 	);
-	// }
-
-	// printUrl(this.inputUrlList);
 };
 
 //TODO: make an on error for promise catch block!
@@ -149,7 +117,7 @@ WebCrawler.prototype._makePageRequest = function _makePageRequest(
 				}
 
 				// Look for the keyword occurances
-				const keyWordCount = searchPageForText(htmlStr, this.KEYWORD);
+				const keyWordCount = searchPageForText(htmlStr, this.KEYWORD) || 0;
 				this.visitedUrls.set(urlObj.url, keyWordCount);
 				this.total_count += keyWordCount;
 
@@ -203,21 +171,6 @@ WebCrawler.prototype.printResults = function printResults(
 ) {
 	urlList.forEach(
 		function(urlObj, index, arr) {
-			// const depthHeaderText = prefixDash + ` DEPTH of ${urlObj.depth}`;
-			// const webHeadText = prefixSpacer + `| * @url ${urlObj.url}`;
-			// const resultsFound =
-			// 	prefixSpacer +
-			// 	'|' +
-			// 	` * (${index + 1}/${arr.length}) found keyword: ${this.KEYWORD} x${
-			// 		urlObj.keyWordCount
-			// 	}`;
-			// const resultsFound =
-			// 	prefixSpacer +
-			// 	'|' +
-			// 	` * Result ${index + 1} of ${arr.length}, found keyword x${
-			// 		urlObj.keyWordCount
-			// 	} times`;
-
 			const prefixDash =
 				'|' + Array.apply(null, Array((urlObj.depth + 1) * 2)).join('-');
 			const prefixSpacer =
@@ -238,31 +191,37 @@ WebCrawler.prototype.printResults = function printResults(
 
 			// TODO: make sure str lenght is less than 30 chars?
 			// ex. | * @url: https://en.wikipedia.org/wiki/hotdog
-			const urlText = prefixSpacer + '|' + ` * @url: ${urlObj.url}`;
-
-			// const strSumArr = [];
-			// strSumArr.concat([depthHeader, pageHeader, countText, urlText]);
-
-			// TODO: determine if there are any links found
-			const redirectLinkText =
+			let urlEllipse = urlObj.url.length > 50 ? '...' : '';
+			const urlText =
 				prefixSpacer +
 				'|' +
-				` * redirect links found: ${urlObj.arrUrls.length}`;
+				` * @url: ${urlObj.url
+					.split('')
+					.splice(0, 50)
+					.join('')}` +
+				urlEllipse;
 
-			const printStr = [
-				depthHeader,
-				pageHeader,
-				countText,
-				urlText,
-				redirectLinkText,
-			].join('\n');
-			console.log(printStr);
+			// let strSumArr = [];
+			// strSumArr = strSumArr.concat(depthHeader, pageHeader, countText, urlText);
+			const strSumArr = [depthHeader, pageHeader, countText, urlText];
 
-			if (urlObj.arrUrls.length > 1) {
-				this.printResults(urlObj.arrUrls);
+			// TODO: determine if there are any links found
+			if (urlObj.arrUrls) {
+				const redirectLinkText =
+					prefixSpacer +
+					'|' +
+					` * redirect links found: ${urlObj.arrUrls.length}`;
+				strSumArr.push(redirectLinkText);
 			}
 
-			// console.log(depthHeaderText + '\n' + webHeadText + '\n' + resultsFound);
+			console.log(strSumArr.join('\n'));
+
+			// if (urlObj.arrUrls && urlObj.arrUrls.length > 0) {
+			// 	this.printResults(urlObj.arrUrls);
+			// }
+			if (urlObj.depth + 1 <= this.MAX_DEPTH) {
+				this.printResults(urlObj.arrUrls);
+			}
 		}.bind(this)
 	);
 };
